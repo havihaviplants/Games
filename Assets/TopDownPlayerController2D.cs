@@ -4,14 +4,18 @@ using UnityEngine;
 public class TopDownPlayerController2D : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 2.8f;
+    [SerializeField] private float acceleration = 18f;
+    [SerializeField] private float deceleration = 24f;
 
     private Rigidbody2D body;
     private SpriteRenderer visual;
     private Vector2 movement;
+    private Vector2 currentVelocity;
     private Sprite[] directionalSprites;
     private FacingDirection facing = FacingDirection.Down;
 
     public Rigidbody2D MovementBody => body;
+    public Vector2 CurrentVelocity => currentVelocity;
 
     private enum FacingDirection
     {
@@ -60,7 +64,10 @@ public class TopDownPlayerController2D : MonoBehaviour
 
     private void FixedUpdate()
     {
-        body.MovePosition(body.position + (movement * moveSpeed * Time.fixedDeltaTime));
+        Vector2 targetVelocity = movement * moveSpeed;
+        float blend = movement.sqrMagnitude > 0.0001f ? acceleration : deceleration;
+        currentVelocity = Vector2.MoveTowards(currentVelocity, targetVelocity, blend * Time.fixedDeltaTime);
+        body.velocity = currentVelocity;
     }
 
     private void UpdateFacingFromMovement()

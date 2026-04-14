@@ -1750,33 +1750,33 @@ public class IsometricFarmVillageBuilder : MonoBehaviour
         {
             SceneKind.Village1HuntA => new[]
             {
-                new Vector3Int(-8, -2, 0), new Vector3Int(-8, 1, 0), new Vector3Int(-8, 4, 0),
-                new Vector3Int(8, -2, 0), new Vector3Int(8, 1, 0), new Vector3Int(8, 4, 0)
+                new Vector3Int(-9, -4, 0), new Vector3Int(-9, -1, 0), new Vector3Int(-9, 2, 0), new Vector3Int(-9, 5, 0),
+                new Vector3Int(9, -4, 0), new Vector3Int(9, -1, 0), new Vector3Int(9, 2, 0), new Vector3Int(9, 5, 0)
             },
             SceneKind.Village1HuntB => new[]
             {
-                new Vector3Int(3, -3, 0), new Vector3Int(3, 0, 0), new Vector3Int(3, 3, 0),
-                new Vector3Int(10, -3, 0), new Vector3Int(10, 0, 0), new Vector3Int(10, 3, 0)
+                new Vector3Int(2, -4, 0), new Vector3Int(2, -1, 0), new Vector3Int(2, 2, 0), new Vector3Int(2, 5, 0),
+                new Vector3Int(11, -4, 0), new Vector3Int(11, -1, 0), new Vector3Int(11, 2, 0), new Vector3Int(11, 5, 0)
             },
             SceneKind.Village2HuntA => new[]
             {
-                new Vector3Int(-7, -2, 0), new Vector3Int(-7, 1, 0), new Vector3Int(-7, 4, 0),
-                new Vector3Int(7, -2, 0), new Vector3Int(7, 1, 0), new Vector3Int(7, 4, 0)
+                new Vector3Int(-8, -4, 0), new Vector3Int(-8, -1, 0), new Vector3Int(-8, 2, 0), new Vector3Int(-8, 5, 0),
+                new Vector3Int(8, -4, 0), new Vector3Int(8, -1, 0), new Vector3Int(8, 2, 0), new Vector3Int(8, 5, 0)
             },
             SceneKind.Village2HuntB => new[]
             {
-                new Vector3Int(-6, -3, 0), new Vector3Int(-6, 0, 0), new Vector3Int(-6, 3, 0),
-                new Vector3Int(6, -3, 0), new Vector3Int(6, 0, 0), new Vector3Int(6, 3, 0)
+                new Vector3Int(-7, -4, 0), new Vector3Int(-7, -1, 0), new Vector3Int(-7, 2, 0), new Vector3Int(-7, 5, 0),
+                new Vector3Int(7, -4, 0), new Vector3Int(7, -1, 0), new Vector3Int(7, 2, 0), new Vector3Int(7, 5, 0)
             },
             SceneKind.Village3HuntA => new[]
             {
-                new Vector3Int(-7, -1, 0), new Vector3Int(-7, 2, 0), new Vector3Int(-7, 5, 0),
-                new Vector3Int(7, -1, 0), new Vector3Int(7, 2, 0), new Vector3Int(7, 5, 0)
+                new Vector3Int(-8, -3, 0), new Vector3Int(-8, 0, 0), new Vector3Int(-8, 3, 0), new Vector3Int(-8, 6, 0),
+                new Vector3Int(8, -3, 0), new Vector3Int(8, 0, 0), new Vector3Int(8, 3, 0), new Vector3Int(8, 6, 0)
             },
             SceneKind.Village3HuntB => new[]
             {
-                new Vector3Int(5, -3, 0), new Vector3Int(5, 0, 0), new Vector3Int(5, 3, 0),
-                new Vector3Int(12, -3, 0), new Vector3Int(12, 0, 0), new Vector3Int(12, 3, 0)
+                new Vector3Int(4, -4, 0), new Vector3Int(4, -1, 0), new Vector3Int(4, 2, 0), new Vector3Int(4, 5, 0),
+                new Vector3Int(13, -4, 0), new Vector3Int(13, -1, 0), new Vector3Int(13, 2, 0), new Vector3Int(13, 5, 0)
             },
             _ => System.Array.Empty<Vector3Int>()
         };
