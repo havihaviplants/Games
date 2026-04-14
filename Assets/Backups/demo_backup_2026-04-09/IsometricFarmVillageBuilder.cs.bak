@@ -1,0 +1,1032 @@
+using System.Collections.Generic;
+using System.IO;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+[ExecuteAlways]
+public class IsometricFarmVillageBuilder : MonoBehaviour
+{
+    [SerializeField] private Vector3 stageOffset = new Vector3(18f, 0f, 0f);
+    [SerializeField] private bool alignMainCamera = true;
+    [SerializeField] private bool cleanupLegacySceneObjects = true;
+    [SerializeField] private bool autoPlayDemo = true;
+    [SerializeField] private float demoStepDuration = 2.4f;
+
+    private readonly Dictionary<Color, Material> colorMaterials = new Dictionary<Color, Material>();
+    private readonly Dictionary<string, Texture2D> textureCache = new Dictionary<string, Texture2D>();
+    private readonly Dictionary<string, Sprite[]> spriteCache = new Dictionary<string, Sprite[]>();
+    private readonly Dictionary<Transform, Vector3> basePositions = new Dictionary<Transform, Vector3>();
+
+    private Transform battleRigRoot;
+    private Transform heroRoot;
+    private Transform enemyRedRoot;
+    private Transform enemyGoldRoot;
+    private Transform enemyRearLeftRoot;
+    private Transform enemyRearRightRoot;
+    private Transform[] cardRoots;
+    private SpriteRenderer heroRenderer;
+    private SpriteRenderer enemyRedRenderer;
+    private SpriteRenderer enemyGoldRenderer;
+    private SpriteRenderer enemyRearLeftRenderer;
+    private SpriteRenderer enemyRearRightRenderer;
+    private Camera cachedCamera;
+    private float demoTimer;
+    private int lastCardIndex = -1;
+    private CardType activeCard = CardType.RapidBloom;
+    private ReactionType redReaction = ReactionType.Brace;
+    private ReactionType goldReaction = ReactionType.SplitFlank;
+    private readonly int[] playerCardHistory = new int[3];
+    private string decisionLog = "Art-driven AI demo ready";
+    private float battleShake;
+    private float actionTimer;
+    private const float ActionDuration = 1.05f;
+
+    private const float PixelsPerUnit = 190f;
+    private const string HeroSheet = "Characters.png";
+    private const string EnemyRedSheet = "Enemyies.png";
+    private const string EnemyGoldSheet = "Enemies.png";
+    private const string KeyArt = "Twilight duel in a village arena.png";
+    private const string StageArt = "Isometric stone platform with lanterns.png";
+
+    private enum CardType
+    {
+        RapidBloom,
+        CrescentDrive,
+        BreakerSigil
+    }
+
+    private enum ReactionType
+    {
+        Brace,
+        Sidestep,
+        SplitFlank,
+        CounterLunge,
+        Retreat
+    }
+
+    private readonly struct WeightedReaction
+    {
+        public WeightedReaction(ReactionType reaction, float weight)
+        {
+            Reaction = reaction;
+            Weight = weight;
+        }
+
+        public ReactionType Reaction { get; }
+        public float Weight { get; }
+    }
+
+    private void OnEnable()
+    {
+        BuildVillage();
+    }
+
+    private void OnValidate()
+    {
+        BuildVillage();
+    }
+
+    [ContextMenu("Rebuild Art Demo")]
+    public void BuildVillage()
+    {
+        if (!isActiveAndEnabled)
+        {
+            return;
+        }
+
+        if (cleanupLegacySceneObjects)
+        {
+            CleanupSceneRoots();
+        }
+
+        Transform existing = transform.Find("GeneratedVillage");
+        if (existing != null)
+        {
+            DestroyImmediate(existing.gameObject);
+        }
+
+        Transform root = new GameObject("GeneratedVillage").transform;
+        root.SetParent(transform, false);
+        root.localPosition = stageOffset;
+
+        BuildBackdrop(root);
+        battleRigRoot = null;
+        BuildStage(root);
+        BuildCharacters(root);
+        BuildCards(root);
+
+        CacheBasePositions(root);
+        ConfigureLighting();
+
+        if (alignMainCamera)
+        {
+            ConfigureCamera(root.position + new Vector3(0f, -0.2f, 0f));
+        }
+    }
+
+    private void Update()
+    {
+        if (!Application.isPlaying)
+        {
+            if (transform.Find("GeneratedVillage") == null)
+            {
+                BuildVillage();
+            }
+
+            FaceSpritesToCamera();
+            return;
+        }
+
+        if (heroRoot == null || enemyRedRoot == null || enemyGoldRoot == null)
+        {
+            Transform root = transform.Find("GeneratedVillage");
+            if (root != null)
+            {
+                CacheBasePositions(root);
+            }
+            return;
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            TriggerCard(CardType.RapidBloom);
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            TriggerCard(CardType.CrescentDrive);
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            TriggerCard(CardType.BreakerSigil);
+        }
+
+        if (autoPlayDemo)
+        {
+            demoTimer += Time.deltaTime;
+            if (demoTimer >= demoStepDuration)
+            {
+                demoTimer = 0f;
+                TriggerCard((CardType)((lastCardIndex + 1) % 3));
+            }
+        }
+
+        actionTimer = Mathf.Max(0f, actionTimer - Time.deltaTime);
+        AnimateActors(Time.time);
+        FaceSpritesToCamera();
+    }
+
+    private void OnGUI()
+    {
+        if (!Application.isPlaying)
+        {
+            return;
+        }
+
+        GUI.color = new Color(1f, 1f, 1f, 0.96f);
+        GUI.Box(new Rect(18f, 18f, 470f, 120f), "Reactive AI Card Demo");
+        GUI.Label(new Rect(34f, 50f, 430f, 24f), "1 Rapid Bloom   2 Crescent Drive   3 Breaker Sigil");
+        GUI.Label(new Rect(34f, 76f, 430f, 24f), $"Current skill: {CardLabel(activeCard)}");
+        GUI.Label(new Rect(34f, 102f, 430f, 24f), $"AI log: {decisionLog}");
+
+        float buttonY = Screen.height - 92f;
+        float buttonWidth = 180f;
+        float gap = 16f;
+        float startX = (Screen.width - ((buttonWidth * 3f) + (gap * 2f))) * 0.5f;
+
+        if (GUI.Button(new Rect(startX, buttonY, buttonWidth, 50f), "Rapid Bloom"))
+        {
+            TriggerCard(CardType.RapidBloom);
+        }
+
+        if (GUI.Button(new Rect(startX + buttonWidth + gap, buttonY, buttonWidth, 50f), "Crescent Drive"))
+        {
+            TriggerCard(CardType.CrescentDrive);
+        }
+
+        if (GUI.Button(new Rect(startX + ((buttonWidth + gap) * 2f), buttonY, buttonWidth, 50f), "Breaker Sigil"))
+        {
+            TriggerCard(CardType.BreakerSigil);
+        }
+    }
+
+    private void BuildBackdrop(Transform parent)
+    {
+        Texture2D keyArt = LoadTexture(KeyArt);
+        if (keyArt != null)
+        {
+            Sprite sprite = CreateFullSprite("FullBackdrop", keyArt);
+            SpriteRenderer background = CreateSprite("Backdrop", sprite, new Vector3(0f, 0.2f, 2.8f), Vector3.one * 1.62f, parent, -50);
+            background.color = Color.white;
+        }
+        else
+        {
+            CreateFlat("SkyFallback", new Vector3(0f, 0.2f, 2.6f), new Vector3(18f, 10f, 0.08f), new Color(0.98f, 0.91f, 0.80f), parent, 0, -40);
+        }
+
+        CreateFlat("BottomVignette", new Vector3(0f, -4.85f, 2.3f), new Vector3(18f, 2.25f, 0.08f), new Color(0.16f, 0.13f, 0.12f), parent, 0, 40);
+        CreateFlat("BottomGlow", new Vector3(0f, -4.05f, 2.29f), new Vector3(16f, 1.2f, 0.08f), new Color(0.38f, 0.28f, 0.18f), parent, 0, 41);
+    }
+
+    private void BuildStage(Transform parent)
+    {
+        Texture2D stageArt = LoadTexture(StageArt);
+        if (stageArt != null)
+        {
+            Sprite sprite = CreateFullSprite("StageSprite", stageArt);
+            SpriteRenderer renderer = CreateSprite("StageBackdrop", sprite, new Vector3(0f, -2.05f, 1.12f), Vector3.one * 0.92f, parent, 5);
+            renderer.color = Color.white;
+        }
+        else
+        {
+            CreateFlat("BattleFocusShadow", new Vector3(0.05f, -2.08f, 1.18f), new Vector3(8.0f, 2.7f, 0.08f), new Color(0.30f, 0.24f, 0.20f), parent, 0, 5);
+            CreateFlat("BattleFocusGlow", new Vector3(0f, -1.90f, 1.16f), new Vector3(7.0f, 2.15f, 0.08f), new Color(0.83f, 0.73f, 0.58f), parent, 0, 6);
+            CreateFlat("BattleFocusInner", new Vector3(0f, -1.90f, 1.15f), new Vector3(5.7f, 1.55f, 0.08f), new Color(0.62f, 0.52f, 0.41f), parent, 0, 7);
+        }
+
+        CreateFlat("BattleFocusFront", new Vector3(0f, -2.92f, 1.14f), new Vector3(5.5f, 0.38f, 0.08f), new Color(0.62f, 0.52f, 0.40f), parent, 0, 36);
+    }
+
+    private void BuildCharacters(Transform parent)
+    {
+        heroRoot = CreateGroup("Hero", new Vector3(0f, -1.88f, 1f), parent);
+        enemyRedRoot = CreateGroup("EnemyRed", new Vector3(-2.75f, -1.02f, 1f), parent);
+        enemyGoldRoot = CreateGroup("EnemyGold", new Vector3(2.75f, -1.02f, 1f), parent);
+        enemyRearLeftRoot = null;
+        enemyRearRightRoot = null;
+
+        heroRenderer = CreateSpriteCharacter(heroRoot, HeroSheet, 0, 32);
+        enemyRedRenderer = CreateSpriteCharacter(enemyRedRoot, EnemyRedSheet, 0, 30);
+        enemyGoldRenderer = CreateSpriteCharacter(enemyGoldRoot, EnemyGoldSheet, 0, 31);
+        enemyRearLeftRenderer = null;
+        enemyRearRightRenderer = null;
+
+        if (heroRenderer != null)
+        {
+            heroRenderer.flipX = false;
+        }
+
+        if (enemyRedRenderer != null)
+        {
+            enemyRedRenderer.flipX = false;
+        }
+
+        if (enemyGoldRenderer != null)
+        {
+            enemyGoldRenderer.flipX = true;
+        }
+
+        CreateFlat("HeroShadow", heroRoot.localPosition + new Vector3(0f, -0.62f, -0.02f), new Vector3(0.92f, 0.16f, 0.04f), new Color(0.25f, 0.20f, 0.17f), parent, 0, 20);
+        CreateFlat("RedShadow", enemyRedRoot.localPosition + new Vector3(0f, -0.62f, -0.02f), new Vector3(0.88f, 0.14f, 0.04f), new Color(0.25f, 0.20f, 0.17f), parent, 0, 20);
+        CreateFlat("GoldShadow", enemyGoldRoot.localPosition + new Vector3(0f, -0.62f, -0.02f), new Vector3(0.88f, 0.14f, 0.04f), new Color(0.25f, 0.20f, 0.17f), parent, 0, 20);
+    }
+
+    private void BuildCards(Transform parent)
+    {
+        cardRoots = new Transform[3];
+        Color[] bodyColors =
+        {
+            new Color(0.28f, 0.54f, 0.95f),
+            new Color(0.92f, 0.46f, 0.23f),
+            new Color(0.95f, 0.76f, 0.23f)
+        };
+
+        for (int i = 0; i < 3; i++)
+        {
+            float x = -2.7f + (i * 2.7f);
+            float y = i == 1 ? -4.88f : -4.66f;
+            Transform card = CreateGroup($"Card_{i}", new Vector3(x, y, 0.8f), parent);
+            cardRoots[i] = card;
+            CreateFlat("Body", Vector3.zero, new Vector3(1.52f, 0.66f, 0.06f), new Color(0.10f, 0.09f, 0.10f), card, 0, 50);
+            CreateFlat("Inset", new Vector3(0f, 0.02f, -0.01f), new Vector3(1.38f, 0.50f, 0.06f), bodyColors[i], card, 0, 51);
+            CreateFlat("Badge", new Vector3(-0.56f, 0f, -0.02f), new Vector3(0.26f, 0.26f, 0.06f), new Color(1f, 0.96f, 0.86f), card, 0, 52);
+            CreateFlat("SkillPip", new Vector3(0.58f, 0f, -0.02f), new Vector3(0.16f, 0.16f, 0.06f), new Color(0.18f, 0.14f, 0.12f), card, 0, 52);
+        }
+    }
+
+    private SpriteRenderer CreateSpriteCharacter(Transform parent, string fileName, int poseIndex, int sortingOrder)
+    {
+        Sprite[] poses = LoadSheetSprites(fileName);
+        if (poses == null || poses.Length == 0)
+        {
+            return null;
+        }
+
+        SpriteRenderer renderer = CreateSprite("CharacterSprite", poses[Mathf.Clamp(poseIndex, 0, poses.Length - 1)], Vector3.zero, Vector3.one * 1.12f, parent, sortingOrder);
+        return renderer;
+    }
+
+    private SpriteRenderer CreateSprite(string name, Sprite sprite, Vector3 localPosition, Vector3 localScale, Transform parent, int sortingOrder)
+    {
+        GameObject go = new GameObject(name);
+        go.transform.SetParent(parent, false);
+        go.transform.localPosition = localPosition;
+        go.transform.localScale = localScale;
+
+        SpriteRenderer renderer = go.AddComponent<SpriteRenderer>();
+        renderer.sprite = sprite;
+        renderer.sortingOrder = sortingOrder;
+        return renderer;
+    }
+
+    private void BuildHouseSilhouette(Transform parent, Vector3 center, float scale)
+    {
+        Transform house = CreateGroup("HouseSilhouette", center, parent);
+        CreateFlat("Roof", new Vector3(0f, 0.56f * scale, 0f), new Vector3(2.65f * scale, 1.35f * scale, 0.06f), new Color(0.73f, 0.46f, 0.33f), house, 0, -30);
+        CreateFlat("Wall", new Vector3(0f, -0.28f * scale, -0.01f), new Vector3(2.1f * scale, 1.45f * scale, 0.06f), new Color(0.94f, 0.88f, 0.78f), house, 0, -31);
+        CreateFlat("Door", new Vector3(0f, -0.62f * scale, -0.02f), new Vector3(0.42f * scale, 0.72f * scale, 0.06f), new Color(0.58f, 0.38f, 0.23f), house, 0, -32);
+    }
+
+    private void BuildTreeSilhouette(Transform parent, Vector3 center, float scale)
+    {
+        Transform tree = CreateGroup("TreeSilhouette", center, parent);
+        CreateFlat("Trunk", new Vector3(0f, -0.58f * scale, 0f), new Vector3(0.42f * scale, 1.6f * scale, 0.06f), new Color(0.53f, 0.35f, 0.21f), tree, 0, -29);
+        CreateFlat("Leaves", new Vector3(0f, 0.55f * scale, -0.01f), new Vector3(2.05f * scale, 1.75f * scale, 0.06f), new Color(0.50f, 0.76f, 0.35f), tree, 0, -28);
+    }
+
+    private void BuildLanternSilhouette(Transform parent, Vector3 center)
+    {
+        Transform lantern = CreateGroup("Lantern", center, parent);
+        CreateFlat("Pole", new Vector3(0f, -0.35f, 0f), new Vector3(0.15f, 0.9f, 0.05f), new Color(0.54f, 0.39f, 0.24f), lantern, 0, -27);
+        CreateFlat("Lamp", new Vector3(0f, 0.28f, -0.01f), new Vector3(0.32f, 0.38f, 0.05f), new Color(0.97f, 0.83f, 0.44f), lantern, 0, -26);
+    }
+
+    private GameObject CreateFlat(string name, Vector3 localPosition, Vector3 localScale, Color color, Transform parent, float zRotation, int sortingOrder)
+    {
+        GameObject flat = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        flat.name = name;
+        flat.transform.SetParent(parent, false);
+        flat.transform.localPosition = localPosition;
+        flat.transform.localRotation = Quaternion.Euler(0f, 0f, zRotation);
+        flat.transform.localScale = localScale;
+
+        Collider collider = flat.GetComponent<Collider>();
+        if (collider != null)
+        {
+            collider.enabled = false;
+        }
+
+        Renderer renderer = flat.GetComponent<Renderer>();
+        if (renderer != null)
+        {
+            renderer.sharedMaterial = GetColorMaterial(color);
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
+            renderer.sortingOrder = sortingOrder;
+        }
+
+        return flat;
+    }
+
+    private void CleanupSceneRoots()
+    {
+        Scene activeScene = gameObject.scene;
+        if (!activeScene.IsValid())
+        {
+            return;
+        }
+
+        foreach (GameObject root in activeScene.GetRootGameObjects())
+        {
+            if (root == gameObject)
+            {
+                continue;
+            }
+
+            if (root.CompareTag("MainCamera") || root.name == "Directional Light" || root.name == "Global Volume")
+            {
+                continue;
+            }
+
+            DestroyImmediate(root);
+        }
+    }
+
+    private void CacheBasePositions(Transform root)
+    {
+        basePositions.Clear();
+        heroRoot = root.Find("Hero");
+        enemyRedRoot = root.Find("EnemyRed");
+        enemyGoldRoot = root.Find("EnemyGold");
+        enemyRearLeftRoot = root.Find("EnemyRearLeft");
+        enemyRearRightRoot = root.Find("EnemyRearRight");
+        CacheTransformRecursive(root);
+    }
+
+    private void CacheTransformRecursive(Transform current)
+    {
+        basePositions[current] = current.localPosition;
+        for (int i = 0; i < current.childCount; i++)
+        {
+            CacheTransformRecursive(current.GetChild(i));
+        }
+    }
+
+    private void TriggerCard(CardType card)
+    {
+        activeCard = card;
+        lastCardIndex = (int)card;
+        playerCardHistory[(int)card]++;
+        redReaction = ChooseReaction(card, 0);
+        goldReaction = ChooseReaction(card, 1);
+        battleShake = 1f;
+        actionTimer = ActionDuration;
+
+        SetSpriteForCard(heroRenderer, HeroSheet, HeroPoseForCard(card));
+        SetSpriteForReaction(enemyRedRenderer, EnemyRedSheet, redReaction);
+        SetSpriteForReaction(enemyGoldRenderer, EnemyGoldSheet, goldReaction);
+
+        decisionLog = $"{CardLabel(card)} -> Hero {HeroActionLabel(card)}, Red {ReactionLabel(redReaction)}, Gold {ReactionLabel(goldReaction)}";
+    }
+
+    private string HeroActionLabel(CardType card)
+    {
+        switch (card)
+        {
+            case CardType.RapidBloom:
+                return "slash";
+            case CardType.CrescentDrive:
+                return "lunge";
+            case CardType.BreakerSigil:
+                return "breaker stance";
+            default:
+                return "ready";
+        }
+    }
+
+    private int HeroPoseForCard(CardType card)
+    {
+        switch (card)
+        {
+            case CardType.RapidBloom:
+                return 1;
+            case CardType.CrescentDrive:
+                return 4;
+            case CardType.BreakerSigil:
+                return 2;
+            default:
+                return 0;
+        }
+    }
+
+    private Vector3 HeroActionOffset(CardType card, float normalizedTime)
+    {
+        float arc = Mathf.Sin(normalizedTime * Mathf.PI);
+        switch (card)
+        {
+            case CardType.RapidBloom:
+                return new Vector3(0.48f * arc, 0.12f * arc, 0f);
+            case CardType.CrescentDrive:
+                return new Vector3(-0.38f * arc, 0.22f * arc, 0f);
+            case CardType.BreakerSigil:
+                return new Vector3(0f, 0.34f * arc, 0f);
+            default:
+                return Vector3.zero;
+        }
+    }
+
+    private float HeroActionTilt(CardType card, float normalizedTime)
+    {
+        float arc = Mathf.Sin(normalizedTime * Mathf.PI);
+        switch (card)
+        {
+            case CardType.RapidBloom:
+                return -14f * arc;
+            case CardType.CrescentDrive:
+                return 16f * arc;
+            case CardType.BreakerSigil:
+                return -8f * arc;
+            default:
+                return 0f;
+        }
+    }
+
+    private void SetSpriteForCard(SpriteRenderer renderer, string fileName, int poseIndex)
+    {
+        if (renderer == null)
+        {
+            return;
+        }
+
+        Sprite[] poses = LoadSheetSprites(fileName);
+        if (poses == null || poses.Length == 0)
+        {
+            return;
+        }
+
+        renderer.sprite = poses[Mathf.Clamp(poseIndex, 0, poses.Length - 1)];
+    }
+
+    private void SetSpriteForReaction(SpriteRenderer renderer, string fileName, ReactionType reaction)
+    {
+        if (renderer == null)
+        {
+            return;
+        }
+
+        Sprite[] poses = LoadSheetSprites(fileName);
+        if (poses == null || poses.Length == 0)
+        {
+            return;
+        }
+
+        int poseIndex = ReactionPoseIndex(reaction);
+        renderer.sprite = poses[Mathf.Clamp(poseIndex, 0, poses.Length - 1)];
+    }
+
+    private int ReactionPoseIndex(ReactionType reaction)
+    {
+        switch (reaction)
+        {
+            case ReactionType.Brace:
+                return 2;
+            case ReactionType.Sidestep:
+                return 3;
+            case ReactionType.SplitFlank:
+                return 1;
+            case ReactionType.CounterLunge:
+                return 4;
+            case ReactionType.Retreat:
+                return 5;
+            default:
+                return 0;
+        }
+    }
+
+    private ReactionType ChooseReaction(CardType card, int soldierIndex)
+    {
+        List<WeightedReaction> options = new List<WeightedReaction>
+        {
+            new WeightedReaction(ReactionType.Brace, 1.0f),
+            new WeightedReaction(ReactionType.Sidestep, 1.0f),
+            new WeightedReaction(ReactionType.SplitFlank, 0.9f),
+            new WeightedReaction(ReactionType.CounterLunge, 0.8f),
+            new WeightedReaction(ReactionType.Retreat, 0.6f)
+        };
+
+        switch (card)
+        {
+            case CardType.RapidBloom:
+                Boost(options, ReactionType.Brace, soldierIndex == 0 ? 1.65f : 0.75f);
+                Boost(options, ReactionType.Sidestep, soldierIndex == 1 ? 0.95f : 0.25f);
+                Boost(options, ReactionType.SplitFlank, soldierIndex == 1 ? 1.05f : 0.45f);
+                break;
+            case CardType.CrescentDrive:
+                Boost(options, ReactionType.Sidestep, soldierIndex == 0 ? 1.1f : 1.55f);
+                Boost(options, ReactionType.Retreat, soldierIndex == 0 ? 0.7f : 1.05f);
+                Boost(options, ReactionType.Brace, soldierIndex == 0 ? 0.4f : 0.1f);
+                break;
+            case CardType.BreakerSigil:
+                Boost(options, ReactionType.CounterLunge, soldierIndex == 0 ? 1.3f : 1.55f);
+                Boost(options, ReactionType.Brace, soldierIndex == 0 ? 0.8f : 0.2f);
+                Boost(options, ReactionType.Sidestep, soldierIndex == 1 ? 0.65f : 0.25f);
+                break;
+        }
+
+        if (playerCardHistory[(int)card] > 1)
+        {
+            Boost(options, ReactionType.CounterLunge, 0.4f);
+            Boost(options, ReactionType.Sidestep, 0.3f);
+        }
+
+        if (soldierIndex == 0)
+        {
+            Boost(options, ReactionType.Brace, 0.45f);
+        }
+        else
+        {
+            Boost(options, ReactionType.SplitFlank, 0.5f);
+            Boost(options, ReactionType.Sidestep, 0.25f);
+        }
+
+        ReactionType otherReaction = soldierIndex == 0 ? goldReaction : redReaction;
+        Boost(options, otherReaction, -0.25f);
+
+        for (int i = 0; i < options.Count; i++)
+        {
+            options[i] = new WeightedReaction(options[i].Reaction, Mathf.Max(0.12f, options[i].Weight + Random.Range(-0.12f, 0.48f)));
+        }
+
+        float total = 0f;
+        for (int i = 0; i < options.Count; i++)
+        {
+            total += options[i].Weight;
+        }
+
+        float roll = Random.value * total;
+        float cumulative = 0f;
+        for (int i = 0; i < options.Count; i++)
+        {
+            cumulative += options[i].Weight;
+            if (roll <= cumulative)
+            {
+                return options[i].Reaction;
+            }
+        }
+
+        return options[options.Count - 1].Reaction;
+    }
+
+    private void Boost(List<WeightedReaction> options, ReactionType reaction, float amount)
+    {
+        for (int i = 0; i < options.Count; i++)
+        {
+            if (options[i].Reaction == reaction)
+            {
+                options[i] = new WeightedReaction(reaction, options[i].Weight + amount);
+                return;
+            }
+        }
+    }
+
+    private void AnimateActors(float timeValue)
+    {
+        float heroBob = Mathf.Sin(timeValue * 3.2f) * 0.05f;
+        float enemyBob = Mathf.Sin(timeValue * 2.4f) * 0.045f;
+        battleShake = Mathf.MoveTowards(battleShake, 0f, Time.deltaTime * 2.1f);
+        float actionNormalized = actionTimer > 0f ? 1f - (actionTimer / ActionDuration) : 0f;
+        Vector3 heroActionOffset = actionTimer > 0f ? HeroActionOffset(activeCard, actionNormalized) : Vector3.zero;
+
+        SetAnimatedPosition(heroRoot, new Vector3(0f, heroBob, 0f) + heroActionOffset);
+        SetAnimatedPosition(enemyRedRoot, ReactionOffset(redReaction, true) + new Vector3(0f, enemyBob, 0f));
+        SetAnimatedPosition(enemyGoldRoot, ReactionOffset(goldReaction, false) + new Vector3(0f, -enemyBob, 0f));
+
+        if (heroRoot != null)
+        {
+            float baseTilt = activeCard == CardType.CrescentDrive ? -3f : activeCard == CardType.BreakerSigil ? 2f : -1f;
+            heroRoot.localRotation = Quaternion.Euler(0f, 0f, baseTilt + (actionTimer > 0f ? HeroActionTilt(activeCard, actionNormalized) : 0f));
+        }
+
+        if (enemyRedRoot != null)
+        {
+            enemyRedRoot.localRotation = Quaternion.Euler(0f, 0f, ReactionTilt(redReaction, true));
+        }
+
+        if (enemyGoldRoot != null)
+        {
+            enemyGoldRoot.localRotation = Quaternion.Euler(0f, 0f, ReactionTilt(goldReaction, false));
+        }
+
+        HighlightActiveCard();
+    }
+
+    private void SetAnimatedPosition(Transform target, Vector3 additiveOffset)
+    {
+        if (target == null || !basePositions.TryGetValue(target, out Vector3 basePosition))
+        {
+            return;
+        }
+
+        target.localPosition = basePosition + additiveOffset;
+    }
+
+    private Vector3 ReactionOffset(ReactionType reaction, bool isLeft)
+    {
+        float side = isLeft ? -1f : 1f;
+        switch (reaction)
+        {
+            case ReactionType.Brace:
+                return new Vector3(-0.08f * side, -0.04f, 0f);
+            case ReactionType.Sidestep:
+                return new Vector3(0.42f * side, 0.03f, 0f);
+            case ReactionType.SplitFlank:
+                return new Vector3(0.58f * side, 0.04f, 0f);
+            case ReactionType.CounterLunge:
+                return new Vector3(isLeft ? 0.26f : -0.26f, 0.08f, 0f);
+            case ReactionType.Retreat:
+                return new Vector3(0.14f * side, 0.18f, 0f);
+            default:
+                return Vector3.zero;
+        }
+    }
+
+    private float ReactionTilt(ReactionType reaction, bool isLeft)
+    {
+        float side = isLeft ? 1f : -1f;
+        switch (reaction)
+        {
+            case ReactionType.Brace:
+                return 1f * side;
+            case ReactionType.Sidestep:
+                return 3f * side;
+            case ReactionType.SplitFlank:
+                return 5f * side;
+            case ReactionType.CounterLunge:
+                return -4f * side;
+            case ReactionType.Retreat:
+                return -2f * side;
+            default:
+                return 0f;
+        }
+    }
+
+    private void HighlightActiveCard()
+    {
+        if (cardRoots == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < cardRoots.Length; i++)
+        {
+            Transform card = cardRoots[i];
+            if (card == null || !basePositions.TryGetValue(card, out Vector3 basePosition))
+            {
+                continue;
+            }
+
+            float lift = i == (int)activeCard ? 0.20f : 0f;
+            float sideOffset = i == 0 ? 0.03f : i == 2 ? 0.03f : 0f;
+            card.localPosition = basePosition + new Vector3(0f, lift + sideOffset, 0f);
+            card.localRotation = Quaternion.Euler(0f, 0f, 0f);
+        }
+    }
+
+    private string CardLabel(CardType card)
+    {
+        switch (card)
+        {
+            case CardType.RapidBloom:
+                return "Rapid Bloom";
+            case CardType.CrescentDrive:
+                return "Crescent Drive";
+            case CardType.BreakerSigil:
+                return "Breaker Sigil";
+            default:
+                return card.ToString();
+        }
+    }
+
+    private string ReactionLabel(ReactionType reaction)
+    {
+        switch (reaction)
+        {
+            case ReactionType.Brace:
+                return "Brace";
+            case ReactionType.Sidestep:
+                return "Sidestep";
+            case ReactionType.SplitFlank:
+                return "Split Flank";
+            case ReactionType.CounterLunge:
+                return "Counter Lunge";
+            case ReactionType.Retreat:
+                return "Retreat";
+            default:
+                return reaction.ToString();
+        }
+    }
+
+    private void ConfigureLighting()
+    {
+        Light light = FindAnyObjectByType<Light>();
+        if (light == null)
+        {
+            return;
+        }
+
+        light.color = new Color(1f, 0.95f, 0.88f);
+        light.intensity = 0.9f;
+        light.transform.rotation = Quaternion.Euler(16f, -10f, 0f);
+    }
+
+    private void ConfigureCamera(Vector3 focusPoint)
+    {
+        cachedCamera = Camera.main;
+        if (cachedCamera == null)
+        {
+            cachedCamera = FindAnyObjectByType<Camera>();
+        }
+
+        if (cachedCamera == null)
+        {
+            return;
+        }
+
+        cachedCamera.transform.position = focusPoint + new Vector3(0f, 0f, -10f);
+        cachedCamera.transform.rotation = Quaternion.identity;
+        cachedCamera.orthographic = true;
+        cachedCamera.orthographicSize = 5.3f;
+        cachedCamera.clearFlags = CameraClearFlags.SolidColor;
+        cachedCamera.backgroundColor = new Color(0.97f, 0.92f, 0.80f);
+    }
+
+    private Transform CreateGroup(string name, Vector3 localPosition, Transform parent)
+    {
+        Transform group = new GameObject(name).transform;
+        group.SetParent(parent, false);
+        group.localPosition = localPosition;
+        return group;
+    }
+
+    private void FaceSpritesToCamera()
+    {
+        if (cachedCamera == null)
+        {
+            cachedCamera = Camera.main;
+        }
+
+        if (cachedCamera == null)
+        {
+            return;
+        }
+
+        FaceRootSprite(heroRoot);
+        FaceRootSprite(enemyRedRoot);
+        FaceRootSprite(enemyGoldRoot);
+    }
+
+    private void FaceRootSprite(Transform root)
+    {
+        if (root == null || root.childCount == 0)
+        {
+            return;
+        }
+
+        Transform spriteTransform = root.GetChild(0);
+        spriteTransform.rotation = Quaternion.LookRotation(cachedCamera.transform.forward, Vector3.up);
+    }
+
+    private Material GetColorMaterial(Color color)
+    {
+        if (colorMaterials.TryGetValue(color, out Material material))
+        {
+            return material;
+        }
+
+        Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
+        if (shader == null)
+        {
+            shader = Shader.Find("Unlit/Color");
+        }
+        if (shader == null)
+        {
+            shader = Shader.Find("Standard");
+        }
+
+        material = new Material(shader)
+        {
+            color = color,
+            hideFlags = HideFlags.HideAndDontSave
+        };
+
+        colorMaterials[color] = material;
+        return material;
+    }
+
+    private Texture2D LoadTexture(string fileName)
+    {
+        if (textureCache.TryGetValue(fileName, out Texture2D cached))
+        {
+            return cached;
+        }
+
+        string fullPath = Path.Combine(Application.dataPath, "Art", fileName);
+        if (!File.Exists(fullPath))
+        {
+            return null;
+        }
+
+        byte[] bytes = File.ReadAllBytes(fullPath);
+        Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false)
+        {
+            name = fileName,
+            filterMode = FilterMode.Bilinear,
+            wrapMode = TextureWrapMode.Clamp,
+            hideFlags = HideFlags.HideAndDontSave
+        };
+
+        texture.LoadImage(bytes, false);
+        textureCache[fileName] = texture;
+        return texture;
+    }
+
+    private Sprite CreateFullSprite(string spriteName, Texture2D texture)
+    {
+        return Sprite.Create(
+            texture,
+            new Rect(0f, 0f, texture.width, texture.height),
+            new Vector2(0.5f, 0.5f),
+            PixelsPerUnit,
+            0,
+            SpriteMeshType.FullRect);
+    }
+
+    private Sprite[] LoadSheetSprites(string fileName)
+    {
+        if (spriteCache.TryGetValue(fileName, out Sprite[] cached))
+        {
+            return cached;
+        }
+
+        Texture2D texture = LoadTexture(fileName);
+        if (texture == null)
+        {
+            return null;
+        }
+
+        int columns = 3;
+        int rows = 2;
+        int cellWidth = texture.width / columns;
+        int cellHeight = texture.height / rows;
+        Sprite[] sprites = new Sprite[columns * rows];
+
+        int index = 0;
+        for (int row = 0; row < rows; row++)
+        {
+            for (int column = 0; column < columns; column++)
+            {
+                Rect rect = new Rect(column * cellWidth, texture.height - ((row + 1) * cellHeight), cellWidth, cellHeight);
+                sprites[index] = CreateProcessedPoseSprite(texture, rect, $"{fileName}_{index}");
+                index++;
+            }
+        }
+
+        spriteCache[fileName] = sprites;
+        return sprites;
+    }
+
+    private Sprite CreateProcessedPoseSprite(Texture2D source, Rect rect, string spriteName)
+    {
+        int width = Mathf.RoundToInt(rect.width);
+        int height = Mathf.RoundToInt(rect.height);
+        Color[] sourcePixels = source.GetPixels(Mathf.RoundToInt(rect.x), Mathf.RoundToInt(rect.y), width, height);
+        Color[] processedPixels = new Color[sourcePixels.Length];
+        int minX = width;
+        int minY = height;
+        int maxX = -1;
+        int maxY = -1;
+
+        for (int y = 0; y < height; y++)
+        {
+            float y01 = (float)y / Mathf.Max(1, height - 1);
+            for (int x = 0; x < width; x++)
+            {
+                int idx = y * width + x;
+                Color pixel = sourcePixels[idx];
+
+                if (pixel.a < 0.01f)
+                {
+                    processedPixels[idx] = pixel;
+                    continue;
+                }
+
+                Color.RGBToHSV(pixel, out float hue, out float saturation, out float value);
+                bool inTileZone = y01 < 0.38f;
+                bool stoneLike = saturation < 0.22f && value > 0.28f && value < 0.86f;
+                bool warmStone = hue > 0.06f && hue < 0.15f && saturation < 0.30f && value > 0.42f;
+
+                if (inTileZone && (stoneLike || warmStone))
+                {
+                    pixel.a = 0f;
+                }
+
+                processedPixels[idx] = pixel;
+
+                if (pixel.a > 0.08f)
+                {
+                    minX = Mathf.Min(minX, x);
+                    minY = Mathf.Min(minY, y);
+                    maxX = Mathf.Max(maxX, x);
+                    maxY = Mathf.Max(maxY, y);
+                }
+            }
+        }
+
+        Texture2D processed = new Texture2D(width, height, TextureFormat.RGBA32, false)
+        {
+            name = spriteName,
+            filterMode = FilterMode.Bilinear,
+            wrapMode = TextureWrapMode.Clamp,
+            hideFlags = HideFlags.HideAndDontSave
+        };
+
+        processed.SetPixels(processedPixels);
+        processed.Apply(false, false);
+
+        if (maxX <= minX || maxY <= minY)
+        {
+            return Sprite.Create(
+                processed,
+                new Rect(0f, 0f, width, height),
+                new Vector2(0.5f, 0.08f),
+                PixelsPerUnit,
+                0,
+                SpriteMeshType.FullRect);
+        }
+
+        int padding = 12;
+        int cropX = Mathf.Max(0, minX - padding);
+        int cropY = Mathf.Max(0, minY - padding);
+        int cropW = Mathf.Min(width - cropX, (maxX - minX) + 1 + (padding * 2));
+        int cropH = Mathf.Min(height - cropY, (maxY - minY) + 1 + (padding * 2));
+
+        return Sprite.Create(
+            processed,
+            new Rect(cropX, cropY, cropW, cropH),
+            new Vector2(0.5f, 0.08f),
+            PixelsPerUnit,
+            0,
+            SpriteMeshType.FullRect);
+    }
+}

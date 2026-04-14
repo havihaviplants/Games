@@ -1,0 +1,192 @@
+<svg width="1600" height="1000" viewBox="0 0 1600 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sky" x1="800" y1="0" x2="800" y2="380" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F7E8B7"/>
+      <stop offset="1" stop-color="#F7FBFF"/>
+    </linearGradient>
+    <linearGradient id="ground" x1="800" y1="250" x2="800" y2="980" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#C7E8A5"/>
+      <stop offset="1" stop-color="#8BC56A"/>
+    </linearGradient>
+    <linearGradient id="pond" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8FE3F8"/>
+      <stop offset="1" stop-color="#4699D4"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#547042" flood-opacity="0.18"/>
+    </filter>
+    <style>
+      .outline { stroke: #4F6841; stroke-width: 3; stroke-linejoin: round; }
+      .soft { stroke: #6B845B; stroke-width: 2.5; stroke-linejoin: round; }
+      .path { fill: #D9BE84; stroke: #B69558; stroke-width: 3; stroke-linejoin: round; }
+      .fence { stroke: #C4975C; stroke-width: 6; stroke-linecap: round; }
+      .small { font: 700 28px 'Segoe UI', sans-serif; fill: #55704A; }
+      .tiny { font: 600 20px 'Segoe UI', sans-serif; fill: #6A7E59; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1000" fill="url(#sky)"/>
+  <ellipse cx="820" cy="905" rx="640" ry="80" fill="#75AF5A" opacity="0.22"/>
+  <path d="M0 330C150 280 320 260 510 296C664 324 777 406 930 406C1073 406 1212 308 1381 290C1483 278 1558 289 1600 308V1000H0V330Z" fill="url(#ground)"/>
+
+  <g filter="url(#shadow)">
+    <polygon class="outline" fill="#A7D87C" points="800,250 1260,480 800,710 340,480"/>
+  </g>
+
+  <g opacity="0.75">
+    <polygon class="soft" fill="#B9E28D" points="800,295 1185,487 800,680 415,487"/>
+    <path d="M800 295V680" stroke="#8AB06B" stroke-width="3"/>
+    <path d="M607 392L992 584" stroke="#8AB06B" stroke-width="3"/>
+    <path d="M992 392L607 584" stroke="#8AB06B" stroke-width="3"/>
+  </g>
+
+  <g>
+    <polygon class="path" points="762,350 922,430 790,496 630,416"/>
+    <polygon class="path" points="790,496 930,566 858,602 718,532"/>
+    <polygon class="path" points="718,532 828,587 768,617 659,562"/>
+    <polygon class="path" points="659,562 735,600 690,622 614,584"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <polygon class="outline" fill="#8BC56A" points="542,426 646,478 542,530 438,478"/>
+    <polygon class="outline" fill="#7BBE58" points="542,350 646,402 542,454 438,402"/>
+    <polygon class="outline" fill="#74B14E" points="438,402 542,454 542,530 438,478"/>
+    <polygon class="outline" fill="#95CF73" points="646,402 542,454 542,530 646,478"/>
+    <path d="M542 350V530" stroke="#5C8A44" stroke-width="4"/>
+    <path d="M438 402L646 506" stroke="#5C8A44" stroke-width="4"/>
+    <path d="M646 402L438 506" stroke="#5C8A44" stroke-width="4"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <polygon class="outline" fill="#8CC970" points="684,494 770,537 684,580 598,537"/>
+    <polygon class="outline" fill="#7BBC5F" points="684,431 770,474 684,517 598,474"/>
+    <polygon class="outline" fill="#70AD53" points="598,474 684,517 684,580 598,537"/>
+    <polygon class="outline" fill="#9AD27B" points="770,474 684,517 684,580 770,537"/>
+    <path d="M684 431V580" stroke="#5C8A44" stroke-width="4"/>
+    <path d="M598 474L770 560" stroke="#5C8A44" stroke-width="4"/>
+    <path d="M770 474L598 560" stroke="#5C8A44" stroke-width="4"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <polygon class="outline" fill="#83C764" points="1046,429 1134,473 1046,517 958,473"/>
+    <polygon class="outline" fill="#75B857" points="1046,366 1134,410 1046,454 958,410"/>
+    <polygon class="outline" fill="#68A94D" points="958,410 1046,454 1046,517 958,473"/>
+    <polygon class="outline" fill="#97D17C" points="1134,410 1046,454 1046,517 1134,473"/>
+    <path d="M1046 366V517" stroke="#5C8A44" stroke-width="4"/>
+    <path d="M958 410L1134 498" stroke="#5C8A44" stroke-width="4"/>
+    <path d="M1134 410L958 498" stroke="#5C8A44" stroke-width="4"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <polygon class="outline" fill="#99D478" points="911,566 997,609 911,652 825,609"/>
+    <polygon class="outline" fill="#89C965" points="911,503 997,546 911,589 825,546"/>
+    <polygon class="outline" fill="#78B554" points="825,546 911,589 911,652 825,609"/>
+    <polygon class="outline" fill="#A9DB84" points="997,546 911,589 911,652 997,609"/>
+    <path d="M911 503V652" stroke="#5C8A44" stroke-width="4"/>
+    <path d="M825 546L997 632" stroke="#5C8A44" stroke-width="4"/>
+    <path d="M997 546L825 632" stroke="#5C8A44" stroke-width="4"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <polygon class="outline" fill="#F6D98D" points="768,370 928,450 768,530 608,450"/>
+    <polygon class="outline" fill="#DB7957" points="768,292 928,372 768,452 608,372"/>
+    <polygon class="outline" fill="#C76B4D" points="608,372 768,452 768,530 608,450"/>
+    <polygon class="outline" fill="#E88E69" points="928,372 768,452 768,530 928,450"/>
+    <polygon class="outline" fill="#F4BFA8" points="768,248 962,345 768,442 574,345"/>
+    <rect x="730" y="390" width="76" height="106" rx="14" fill="#FFF4D7" stroke="#5F5A49" stroke-width="4" transform="rotate(30 730 390)"/>
+    <polygon class="outline" fill="#84C57A" points="828,424 884,452 828,480 772,452"/>
+    <polygon class="outline" fill="#FFF0C5" points="706,414 742,432 706,450 670,432"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <polygon class="outline" fill="#C55B4E" points="1026,414 1162,482 1026,550 890,482"/>
+    <polygon class="outline" fill="#B5443A" points="1026,332 1162,400 1026,468 890,400"/>
+    <polygon class="outline" fill="#A13A30" points="890,400 1026,468 1026,550 890,482"/>
+    <polygon class="outline" fill="#D86E5D" points="1162,400 1026,468 1026,550 1162,482"/>
+    <polygon class="outline" fill="#863A30" points="1026,272 1186,352 1026,432 866,352"/>
+    <rect x="982" y="412" width="78" height="118" rx="12" fill="#F7E6C3" stroke="#5F453D" stroke-width="4" transform="rotate(30 982 412)"/>
+    <path d="M1026 332V548" stroke="#7B2D25" stroke-width="5"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <polygon class="outline" fill="#9BD0EA" points="1134,562 1260,625 1134,688 1008,625"/>
+    <path class="outline" d="M1134 544C1204 544 1260 580 1260 625C1260 670 1204 706 1134 706C1064 706 1008 670 1008 625C1008 580 1064 544 1134 544Z" fill="url(#pond)"/>
+    <path d="M1058 607C1082 594 1109 596 1132 607" stroke="#D9FAFF" stroke-width="5" stroke-linecap="round"/>
+    <path d="M1128 642C1162 629 1194 632 1218 648" stroke="#D9FAFF" stroke-width="5" stroke-linecap="round"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <polygon class="outline" fill="#F1CF74" points="471,574 601,639 471,704 341,639"/>
+    <polygon class="outline" fill="#D1A248" points="471,519 601,584 471,649 341,584"/>
+    <polygon class="outline" fill="#B7852F" points="341,584 471,649 471,704 341,639"/>
+    <polygon class="outline" fill="#E0B961" points="601,584 471,649 471,704 601,639"/>
+    <path d="M359 624L582 512" stroke="#EED58C" stroke-width="4"/>
+    <path d="M391 640L614 528" stroke="#EED58C" stroke-width="4"/>
+    <path d="M423 656L646 544" stroke="#EED58C" stroke-width="4"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <polygon class="outline" fill="#7CBF63" points="1239,434 1294,462 1239,490 1184,462"/>
+    <rect x="1232" y="386" width="14" height="88" rx="7" fill="#7D5A36" transform="rotate(30 1232 386)"/>
+    <circle cx="1239" cy="402" r="34" fill="#7FCB6A" stroke="#4F6841" stroke-width="4"/>
+    <circle cx="1208" cy="423" r="28" fill="#89D573" stroke="#4F6841" stroke-width="4"/>
+    <circle cx="1270" cy="423" r="28" fill="#96DD7D" stroke="#4F6841" stroke-width="4"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <polygon class="outline" fill="#7CBF63" points="1313,490 1368,518 1313,546 1258,518"/>
+    <rect x="1306" y="442" width="14" height="88" rx="7" fill="#7D5A36" transform="rotate(30 1306 442)"/>
+    <circle cx="1313" cy="458" r="34" fill="#7FCB6A" stroke="#4F6841" stroke-width="4"/>
+    <circle cx="1282" cy="479" r="28" fill="#89D573" stroke="#4F6841" stroke-width="4"/>
+    <circle cx="1344" cy="479" r="28" fill="#96DD7D" stroke="#4F6841" stroke-width="4"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <polygon class="outline" fill="#7CBF63" points="617,662 672,690 617,718 562,690"/>
+    <rect x="610" y="614" width="14" height="88" rx="7" fill="#7D5A36" transform="rotate(30 610 614)"/>
+    <circle cx="617" cy="630" r="34" fill="#7FCB6A" stroke="#4F6841" stroke-width="4"/>
+    <circle cx="586" cy="651" r="28" fill="#89D573" stroke="#4F6841" stroke-width="4"/>
+    <circle cx="648" cy="651" r="28" fill="#96DD7D" stroke="#4F6841" stroke-width="4"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <polygon class="outline" fill="#7CBF63" points="760,692 815,720 760,748 705,720"/>
+    <rect x="753" y="644" width="14" height="88" rx="7" fill="#7D5A36" transform="rotate(30 753 644)"/>
+    <circle cx="760" cy="660" r="34" fill="#7FCB6A" stroke="#4F6841" stroke-width="4"/>
+    <circle cx="729" cy="681" r="28" fill="#89D573" stroke="#4F6841" stroke-width="4"/>
+    <circle cx="791" cy="681" r="28" fill="#96DD7D" stroke="#4F6841" stroke-width="4"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <polygon class="outline" fill="#7CBF63" points="488,453 543,481 488,509 433,481"/>
+    <rect x="481" y="405" width="14" height="88" rx="7" fill="#7D5A36" transform="rotate(30 481 405)"/>
+    <circle cx="488" cy="421" r="34" fill="#7FCB6A" stroke="#4F6841" stroke-width="4"/>
+    <circle cx="457" cy="442" r="28" fill="#89D573" stroke="#4F6841" stroke-width="4"/>
+    <circle cx="519" cy="442" r="28" fill="#96DD7D" stroke="#4F6841" stroke-width="4"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <path class="fence" d="M955 520L1108 596"/>
+    <path class="fence" d="M931 533L1084 609"/>
+    <path class="fence" d="M1007 520L1007 608"/>
+    <path class="fence" d="M1048 540L1048 628"/>
+    <path class="fence" d="M1088 560L1088 648"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <path class="outline" d="M1243 387L1243 300" stroke="#6A4C2A" stroke-width="8" stroke-linecap="round"/>
+    <path class="outline" d="M1207 338L1279 374" stroke="#EDE8DA" stroke-width="18" stroke-linecap="round"/>
+    <path class="outline" d="M1207 374L1279 338" stroke="#EDE8DA" stroke-width="18" stroke-linecap="round"/>
+    <circle cx="1243" cy="356" r="9" fill="#B77745"/>
+  </g>
+
+  <g opacity="0.9">
+    <ellipse cx="1135" cy="214" rx="62" ry="24" fill="#FFFFFF" opacity="0.85"/>
+    <ellipse cx="1186" cy="226" rx="48" ry="20" fill="#FFFFFF" opacity="0.82"/>
+    <ellipse cx="384" cy="208" rx="78" ry="28" fill="#FFFFFF" opacity="0.85"/>
+    <ellipse cx="450" cy="221" rx="58" ry="22" fill="#FFFFFF" opacity="0.8"/>
+  </g>
+
+  <text x="800" y="120" text-anchor="middle" class="small">Cozy 2.5D Isometric Farm Village</text>
+  <text x="800" y="154" text-anchor="middle" class="tiny">farmhouse, red barn, crop plots, pond, orchard and soft village paths</text>
+</svg>

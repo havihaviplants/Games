@@ -1,0 +1,205 @@
+<svg width="1600" height="1000" viewBox="0 0 1600 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgSky" x1="800" y1="0" x2="800" y2="540" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F8E7C2"/>
+      <stop offset="1" stop-color="#FFF7E9"/>
+    </linearGradient>
+    <linearGradient id="mist" x1="800" y1="260" x2="800" y2="620" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F7F0DA" stop-opacity="0"/>
+      <stop offset="1" stop-color="#F4EAD2" stop-opacity="0.95"/>
+    </linearGradient>
+    <linearGradient id="grassA" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#B8DC84"/>
+      <stop offset="1" stop-color="#7BB85A"/>
+    </linearGradient>
+    <linearGradient id="grassB" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#D2EC97"/>
+      <stop offset="1" stop-color="#8CC866"/>
+    </linearGradient>
+    <linearGradient id="stone" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#E6D7BF"/>
+      <stop offset="1" stop-color="#BEA785"/>
+    </linearGradient>
+    <linearGradient id="water" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#97E3F8"/>
+      <stop offset="1" stop-color="#4EA0D9"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFE694"/>
+      <stop offset="1" stop-color="#F2B94B"/>
+    </linearGradient>
+    <linearGradient id="red" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F2896A"/>
+      <stop offset="1" stop-color="#C74A3E"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#4B5A37" flood-opacity="0.16"/>
+    </filter>
+    <filter id="softShadow" x="-20%" y="-20%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#6B7A4D" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .outline { stroke:#566446; stroke-width:3.2; stroke-linejoin:round; }
+      .fine { stroke:#657756; stroke-width:2.2; stroke-linejoin:round; }
+      .ui { stroke:#5B4D3A; stroke-width:3; stroke-linejoin:round; }
+      .title { font: 700 42px 'Segoe UI', sans-serif; fill:#5D5A46; }
+      .subtitle { font: 600 22px 'Segoe UI', sans-serif; fill:#77705F; }
+      .label { font: 700 24px 'Segoe UI', sans-serif; fill:#534D40; }
+      .tiny { font: 600 18px 'Segoe UI', sans-serif; fill:#6A6557; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1000" fill="url(#bgSky)"/>
+  <path d="M0 346C188 278 374 287 557 316C680 336 803 388 941 391C1093 395 1240 318 1382 295C1482 279 1552 286 1600 299V1000H0V346Z" fill="#CFE4A9"/>
+  <path d="M0 412C151 381 310 390 462 424C633 462 775 538 924 540C1085 543 1212 458 1388 434C1482 421 1554 423 1600 432V1000H0V412Z" fill="url(#mist)"/>
+
+  <g opacity="0.78">
+    <ellipse cx="304" cy="170" rx="90" ry="28" fill="#FFF8EF"/>
+    <ellipse cx="374" cy="183" rx="68" ry="22" fill="#FFF8EF"/>
+    <ellipse cx="1138" cy="142" rx="104" ry="30" fill="#FFF8EF"/>
+    <ellipse cx="1228" cy="158" rx="74" ry="24" fill="#FFF8EF"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <polygon class="outline" fill="url(#grassA)" points="800,212 1260,444 800,684 340,444"/>
+    <polygon class="fine" fill="url(#grassB)" points="800,252 1198,451 800,655 402,451"/>
+    <path d="M800 252V655" stroke="#8FAF6F" stroke-width="3"/>
+    <path d="M589 356L986 556" stroke="#8FAF6F" stroke-width="3"/>
+    <path d="M1001 356L608 555" stroke="#8FAF6F" stroke-width="3"/>
+  </g>
+
+  <g filter="url(#softShadow)">
+    <polygon class="outline" fill="url(#stone)" points="803,388 1086,530 803,675 520,530"/>
+    <polygon class="fine" fill="#F0E3C9" points="803,412 1042,531 803,652 564,531"/>
+    <circle cx="803" cy="530" r="82" fill="#C99453" opacity="0.28"/>
+    <circle cx="803" cy="530" r="45" fill="#8E6A48" opacity="0.24"/>
+  </g>
+
+  <g filter="url(#softShadow)">
+    <polygon class="outline" fill="#8CC4EF" points="1098,511 1232,578 1098,645 964,578"/>
+    <path class="outline" d="M1098 498C1170 498 1232 533 1232 578C1232 623 1170 658 1098 658C1026 658 964 623 964 578C964 533 1026 498 1098 498Z" fill="url(#water)"/>
+    <path d="M1013 572C1047 555 1084 558 1119 574" stroke="#E1F9FF" stroke-width="5" stroke-linecap="round"/>
+    <path d="M1088 614C1128 600 1166 604 1198 620" stroke="#E1F9FF" stroke-width="5" stroke-linecap="round"/>
+  </g>
+
+  <g filter="url(#softShadow)">
+    <polygon class="outline" fill="#F0CA73" points="505,544 631,607 505,670 379,607"/>
+    <polygon class="fine" fill="#D39E3E" points="505,493 631,556 505,619 379,556"/>
+    <path d="M400 588L610 482" stroke="#F5DB97" stroke-width="4"/>
+    <path d="M432 604L642 498" stroke="#F5DB97" stroke-width="4"/>
+    <path d="M463 620L673 514" stroke="#F5DB97" stroke-width="4"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <polygon class="outline" fill="#FFF2D9" points="621,309 760,379 621,449 482,379"/>
+    <polygon class="outline" fill="url(#red)" points="621,236 760,306 621,376 482,306"/>
+    <polygon class="outline" fill="#D77055" points="482,306 621,376 621,449 482,379"/>
+    <polygon class="outline" fill="#F09973" points="760,306 621,376 621,449 760,379"/>
+    <polygon class="outline" fill="#FFD1B8" points="621,191 785,273 621,355 457,273"/>
+    <rect x="590" y="320" width="55" height="94" rx="12" fill="#6A4A31" stroke="#5A4532" stroke-width="4" transform="rotate(30 590 320)"/>
+    <polygon class="fine" fill="#7FC67B" points="683,349 725,370 683,391 641,370"/>
+    <polygon class="fine" fill="#86C5F2" points="562,334 594,350 562,366 530,350"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <polygon class="outline" fill="#C45B4A" points="1046,357 1186,427 1046,497 906,427"/>
+    <polygon class="outline" fill="#B34236" points="1046,277 1186,347 1046,417 906,347"/>
+    <polygon class="outline" fill="#9E372D" points="906,347 1046,417 1046,497 906,427"/>
+    <polygon class="outline" fill="#D76F5C" points="1186,347 1046,417 1046,497 1186,427"/>
+    <polygon class="outline" fill="#7C3027" points="1046,214 1204,293 1046,372 888,293"/>
+    <rect x="998" y="362" width="74" height="108" rx="12" fill="#F6E6C8" stroke="#5B453A" stroke-width="4" transform="rotate(30 998 362)"/>
+  </g>
+
+  <g filter="url(#softShadow)">
+    <polygon class="outline" fill="#F2C76A" points="888,357 966,396 888,435 810,396"/>
+    <rect x="878" y="317" width="18" height="76" rx="9" fill="#6A4C2B" transform="rotate(30 878 317)"/>
+    <circle cx="888" cy="333" r="24" fill="#FFD979" stroke="#8C6A34" stroke-width="4"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <polygon class="outline" fill="#7EC56A" points="454,374 512,403 454,432 396,403"/>
+    <rect x="447" y="325" width="16" height="88" rx="8" fill="#805D36" transform="rotate(30 447 325)"/>
+    <circle cx="454" cy="340" r="34" fill="#7ECA67" stroke="#506845" stroke-width="4"/>
+    <circle cx="423" cy="362" r="27" fill="#8CD475" stroke="#506845" stroke-width="4"/>
+    <circle cx="485" cy="362" r="27" fill="#96DD7D" stroke="#506845" stroke-width="4"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <polygon class="outline" fill="#7EC56A" points="1181,481 1237,509 1181,537 1125,509"/>
+    <rect x="1174" y="432" width="16" height="88" rx="8" fill="#805D36" transform="rotate(30 1174 432)"/>
+    <circle cx="1181" cy="447" r="34" fill="#7ECA67" stroke="#506845" stroke-width="4"/>
+    <circle cx="1150" cy="468" r="27" fill="#8CD475" stroke="#506845" stroke-width="4"/>
+    <circle cx="1212" cy="468" r="27" fill="#96DD7D" stroke="#506845" stroke-width="4"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <path d="M809 491L809 604" stroke="#A27543" stroke-width="10" stroke-linecap="round"/>
+    <path d="M769 547L849 547" stroke="#A27543" stroke-width="10" stroke-linecap="round"/>
+    <circle cx="809" cy="446" r="42" fill="#F5DABF" stroke="#6E5742" stroke-width="4"/>
+    <path d="M784 430C794 408 823 405 837 426" stroke="#6C4A2F" stroke-width="8" stroke-linecap="round"/>
+    <rect x="764" y="473" width="88" height="96" rx="26" fill="#4C85E3" stroke="#325A9F" stroke-width="4"/>
+    <path d="M851 523L903 476" stroke="#C1D8FF" stroke-width="12" stroke-linecap="round"/>
+    <path d="M903 476L920 458" stroke="#E8F0FF" stroke-width="12" stroke-linecap="round"/>
+    <path d="M896 487L917 448" stroke="#F7D56C" stroke-width="6" stroke-linecap="round"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <path d="M741 457L701 548" stroke="#8A6439" stroke-width="10" stroke-linecap="round"/>
+    <path d="M741 457L770 433" stroke="#D7E5F7" stroke-width="10" stroke-linecap="round"/>
+    <circle cx="714" cy="432" r="36" fill="#F0D2B0" stroke="#6B5645" stroke-width="4"/>
+    <rect x="678" y="458" width="72" height="94" rx="22" fill="#D26C52" stroke="#984734" stroke-width="4"/>
+    <rect x="688" y="401" width="52" height="18" rx="9" fill="#616B79"/>
+    <path d="M706 523L674 575" stroke="#8B643A" stroke-width="12" stroke-linecap="round"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <path d="M915 444L961 523" stroke="#8A6439" stroke-width="10" stroke-linecap="round"/>
+    <path d="M961 523L984 567" stroke="#8A6439" stroke-width="10" stroke-linecap="round"/>
+    <path d="M915 444L940 417" stroke="#D7E5F7" stroke-width="10" stroke-linecap="round"/>
+    <circle cx="890" cy="418" r="35" fill="#F0D2B0" stroke="#6B5645" stroke-width="4"/>
+    <rect x="856" y="446" width="68" height="90" rx="20" fill="#E0AF3F" stroke="#A87A1F" stroke-width="4"/>
+    <rect x="864" y="388" width="50" height="18" rx="9" fill="#616B79"/>
+    <path d="M886 513L920 569" stroke="#8B643A" stroke-width="12" stroke-linecap="round"/>
+  </g>
+
+  <g opacity="0.95">
+    <ellipse cx="708" cy="603" rx="48" ry="12" fill="#718C5B" opacity="0.24"/>
+    <ellipse cx="806" cy="631" rx="54" ry="14" fill="#718C5B" opacity="0.24"/>
+    <ellipse cx="905" cy="586" rx="44" ry="12" fill="#718C5B" opacity="0.24"/>
+  </g>
+
+  <g filter="url(#softShadow)">
+    <rect x="100" y="70" width="476" height="150" rx="28" fill="#FFF7E8" stroke="#D9C8AA" stroke-width="3"/>
+    <text x="138" y="130" class="title">Reactive AI Card Battle</text>
+    <text x="138" y="170" class="subtitle">2.5D isometric fantasy village • card-driven martial skills • varied enemy responses</text>
+  </g>
+
+  <g filter="url(#softShadow)">
+    <rect x="1122" y="98" width="360" height="170" rx="28" fill="#FFF8EA" stroke="#D7C5A5" stroke-width="3"/>
+    <text x="1162" y="148" class="label">AI Reaction Log</text>
+    <text x="1162" y="186" class="tiny">Rapid Bloom detected</text>
+    <text x="1162" y="214" class="tiny">Left Spear Guard: brace + flank</text>
+    <text x="1162" y="242" class="tiny">Right Spear Guard: staggered sidestep</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="328" y="774" width="944" height="180" rx="34" fill="#FFF5E2" stroke="#D7C3A0" stroke-width="4"/>
+    <rect x="372" y="804" width="236" height="120" rx="26" fill="#4C85E3" stroke="#2F5DA7" stroke-width="4"/>
+    <rect x="682" y="792" width="236" height="132" rx="26" fill="#E76D4A" stroke="#A94A33" stroke-width="4"/>
+    <rect x="992" y="804" width="236" height="120" rx="26" fill="#F0BE4B" stroke="#AF7A1C" stroke-width="4"/>
+
+    <rect x="404" y="826" width="172" height="54" rx="18" fill="#F8F1E1" stroke="#D6D0C2" stroke-width="3"/>
+    <rect x="716" y="822" width="168" height="64" rx="18" fill="#FBF2E2" stroke="#D6CABB" stroke-width="3"/>
+    <rect x="1026" y="826" width="168" height="56" rx="18" fill="#FBF2E2" stroke="#D6CABB" stroke-width="3"/>
+
+    <circle cx="490" cy="851" r="18" fill="#FFF7E8"/>
+    <circle cx="800" cy="853" r="18" fill="#FFF7E8"/>
+    <circle cx="1110" cy="854" r="18" fill="#FFF7E8"/>
+
+    <text x="430" y="908" class="label" fill="#FFF9F0">Rapid Bloom</text>
+    <text x="739" y="910" class="label" fill="#FFF9F0">Crescent Drive</text>
+    <text x="1057" y="908" class="label" fill="#FFF9F0">Breaker Sigil</text>
+  </g>
+
+  <text x="800" y="980" text-anchor="middle" class="tiny">MVP concept shot for presentation use</text>
+</svg>

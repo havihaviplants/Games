@@ -25,3 +25,11 @@
 /*.aab
 /*.unitypackage
 /.gradle/
+/.plastic/
+/ProjectBackups/
+/Assets/.vs/
+/*.zip
+/*.7z
+/*.rar
+/*.slnx
+/UpgradeLog.htm
