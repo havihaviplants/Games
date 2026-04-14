@@ -1663,6 +1663,7 @@ public class IsometricFarmVillageBuilder : MonoBehaviour
 
         TopDownPlayerController2D controller = heroRoot.gameObject.AddComponent<TopDownPlayerController2D>();
         controller.Configure(heroRenderer, LoadSheetSprites(HeroSheet));
+        AttachCharacterPresentation(heroRoot, heroRenderer, body, true);
 
         Vector3 npcWorld = grid.GetCellCenterWorld(GetNpcSpawnCell(sceneKind));
         enemyRedRoot = CreateGroup("EnemyRed", parent.InverseTransformPoint(npcWorld), parent);
@@ -1672,6 +1673,7 @@ public class IsometricFarmVillageBuilder : MonoBehaviour
             FitSpriteRendererToHeight(enemyRedRenderer, 0.50f);
             enemyRedRenderer.flipX = true;
         }
+        AttachCharacterPresentation(enemyRedRoot, enemyRedRenderer, null, false);
 
         Vector3 goldNpcWorld = grid.GetCellCenterWorld(GetGoldNpcSpawnCell(sceneKind));
         enemyGoldRoot = CreateGroup("EnemyGold", parent.InverseTransformPoint(goldNpcWorld), parent);
@@ -1680,9 +1682,104 @@ public class IsometricFarmVillageBuilder : MonoBehaviour
         {
             FitSpriteRendererToHeight(enemyGoldRenderer, 0.50f);
         }
+        AttachCharacterPresentation(enemyGoldRoot, enemyGoldRenderer, null, false);
+
+        CreateHuntGuardFormation(parent, grid, sceneKind);
 
         ApplyPendingSpawn(parent);
         AttachCameraFollow(heroRoot);
+    }
+
+    private void AttachCharacterPresentation(Transform actorRoot, SpriteRenderer renderer, Rigidbody2D body, bool movementResponsive)
+    {
+        if (actorRoot == null || renderer == null)
+        {
+            return;
+        }
+
+        SpriteCharacterPresentation2D presentation = actorRoot.GetComponent<SpriteCharacterPresentation2D>();
+        if (presentation == null)
+        {
+            presentation = actorRoot.gameObject.AddComponent<SpriteCharacterPresentation2D>();
+        }
+
+        presentation.Configure(renderer, body, movementResponsive);
+    }
+
+    private void CreateHuntGuardFormation(Transform parent, Grid grid, SceneKind sceneKind)
+    {
+        if (!IsNestedHuntScene(sceneKind))
+        {
+            return;
+        }
+
+        Vector3Int[] guardCells = GetHuntGuardCells(sceneKind);
+        for (int i = 0; i < guardCells.Length; i++)
+        {
+            Vector3 world = grid.GetCellCenterWorld(guardCells[i]);
+            Transform guardRoot = CreateGroup($"Guard_{i + 1}", parent.InverseTransformPoint(world), parent);
+
+            bool leftColumn = i < guardCells.Length / 2;
+            string sheet = (i % 3 == 0) ? "Medieval golden-armored spear soldier sprite sheet.png" : EnemyRedSheet;
+            int sortingOrder = 470 - Mathf.RoundToInt(world.y * 10f) - i;
+            SpriteRenderer guardRenderer = CreateSpriteCharacter(guardRoot, sheet, leftColumn ? 2 : 3, sortingOrder);
+            if (guardRenderer == null)
+            {
+                continue;
+            }
+
+            FitSpriteRendererToHeight(guardRenderer, 0.52f);
+            guardRenderer.flipX = false;
+            AttachCharacterPresentation(guardRoot, guardRenderer, null, false);
+        }
+    }
+
+    private bool IsNestedHuntScene(SceneKind sceneKind)
+    {
+        return sceneKind == SceneKind.Village1HuntA
+            || sceneKind == SceneKind.Village1HuntB
+            || sceneKind == SceneKind.Village2HuntA
+            || sceneKind == SceneKind.Village2HuntB
+            || sceneKind == SceneKind.Village3HuntA
+            || sceneKind == SceneKind.Village3HuntB;
+    }
+
+    private Vector3Int[] GetHuntGuardCells(SceneKind sceneKind)
+    {
+        return sceneKind switch
+        {
+            SceneKind.Village1HuntA => new[]
+            {
+                new Vector3Int(-8, -2, 0), new Vector3Int(-8, 1, 0), new Vector3Int(-8, 4, 0),
+                new Vector3Int(8, -2, 0), new Vector3Int(8, 1, 0), new Vector3Int(8, 4, 0)
+            },
+            SceneKind.Village1HuntB => new[]
+            {
+                new Vector3Int(3, -3, 0), new Vector3Int(3, 0, 0), new Vector3Int(3, 3, 0),
+                new Vector3Int(10, -3, 0), new Vector3Int(10, 0, 0), new Vector3Int(10, 3, 0)
+            },
+            SceneKind.Village2HuntA => new[]
+            {
+                new Vector3Int(-7, -2, 0), new Vector3Int(-7, 1, 0), new Vector3Int(-7, 4, 0),
+                new Vector3Int(7, -2, 0), new Vector3Int(7, 1, 0), new Vector3Int(7, 4, 0)
+            },
+            SceneKind.Village2HuntB => new[]
+            {
+                new Vector3Int(-6, -3, 0), new Vector3Int(-6, 0, 0), new Vector3Int(-6, 3, 0),
+                new Vector3Int(6, -3, 0), new Vector3Int(6, 0, 0), new Vector3Int(6, 3, 0)
+            },
+            SceneKind.Village3HuntA => new[]
+            {
+                new Vector3Int(-7, -1, 0), new Vector3Int(-7, 2, 0), new Vector3Int(-7, 5, 0),
+                new Vector3Int(7, -1, 0), new Vector3Int(7, 2, 0), new Vector3Int(7, 5, 0)
+            },
+            SceneKind.Village3HuntB => new[]
+            {
+                new Vector3Int(5, -3, 0), new Vector3Int(5, 0, 0), new Vector3Int(5, 3, 0),
+                new Vector3Int(12, -3, 0), new Vector3Int(12, 0, 0), new Vector3Int(12, 3, 0)
+            },
+            _ => System.Array.Empty<Vector3Int>()
+        };
     }
 
     private void FitSpriteRendererToHeight(SpriteRenderer renderer, float targetHeight)
@@ -1729,7 +1826,7 @@ public class IsometricFarmVillageBuilder : MonoBehaviour
             if (body != null)
             {
                 body.position = spawnPoint.transform.position;
-                body.linearVelocity = Vector2.zero;
+                body.velocity = Vector2.zero;
                 body.angularVelocity = 0f;
             }
 

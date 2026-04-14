@@ -11,6 +11,8 @@ public class TopDownPlayerController2D : MonoBehaviour
     private Sprite[] directionalSprites;
     private FacingDirection facing = FacingDirection.Down;
 
+    public Rigidbody2D MovementBody => body;
+
     private enum FacingDirection
     {
         Down = 0,
